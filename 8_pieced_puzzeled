@@ -1,0 +1,88 @@
+from collections import deque
+
+# Goal state for 8-puzzle
+GOAL_STATE = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 0]
+]
+
+# Moves are up, down, left, right relative to zero position
+MOVES = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+
+def is_goal(state):
+    return state == GOAL_STATE
+
+
+def find_zero(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                return i, j
+
+
+def copy_state(state):
+    return [row[:] for row in state]
+
+
+def state_to_tuple(state):
+    return tuple(tuple(row) for row in state)
+
+
+def backtracking(state, visited, path):
+    if is_goal(state):
+        return True
+
+    zero_x, zero_y = find_zero(state)
+
+    for dx, dy in MOVES:
+        new_x, new_y = zero_x + dx, zero_y + dy
+        if 0 <= new_x < 3 and 0 <= new_y < 3:
+            new_state = copy_state(state)
+            # Swap zero and target
+            new_state[zero_x][zero_y], new_state[new_x][new_y] = new_state[new_x][new_y], new_state[zero_x][zero_y]
+
+            state_key = state_to_tuple(new_state)
+            if state_key not in visited:
+                visited.add(state_key)
+                path.append(new_state)
+                if backtracking(new_state, visited, path):
+                    return True
+                path.pop()
+    return False
+
+
+def solve_puzzle(start_state):
+    visited = set()
+    visited.add(state_to_tuple(start_state))
+    path = [start_state]
+
+    if backtracking(start_state, visited, path):
+        return path
+    else:
+        return None
+
+
+def print_path(path):
+    for step, state in enumerate(path):
+        print(f"Step {step}:")
+        for row in state:
+            print(row)
+        print()
+
+
+# Example usage:
+start = [
+    [1, 2, 3],
+    [4, 0, 6],
+    [7, 5, 8]
+]
+
+solution_path = solve_puzzle(start)
+
+if solution_path:
+    print(f"Solution found in {len(solution_path)-1} moves!")
+    print_path(solution_path)
+else:
+    print("No solution found.")
